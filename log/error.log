@@ -1,2 +1,0 @@
-2018/02/11 18:49:02 [error] 7853#0: *2 open() "/srv/torch.cloud/pub/favicon.ico" failed (2: No such file or directory), client: 67.250.116.251, server: torch.cloud, request: "GET /favicon.ico HTTP/1.1", host: "torch.cloud", referrer: "https://torch.cloud/"
-2018/02/11 18:49:02 [error] 7853#0: *2 open() "/srv/torch.cloud/pub/index.html" failed (2: No such file or directory), client: 67.250.116.251, server: torch.cloud, request: "GET /favicon.ico HTTP/1.1", host: "torch.cloud", referrer: "https://torch.cloud/"
