@@ -1,4 +1,4 @@
 # Torch Cloud
-A Simple JavaScript Game Engine 
+A Simple Three.js/Cannon.js Game Engine
 
 https://Torch.Cloud
