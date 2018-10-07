@@ -1,40 +1,38 @@
 'use-strict';
 
 import * as THREE from 'three';
-import * as CANNON from 'cannon';
+import {
+  Body, 
+  Plane,
+  Vec3
+} from 'cannon';
 import SceneObject from './SceneObject';
 
 export default class Ground extends SceneObject {
 
-  constructor(level, x, y, z, texturesrc, scale=1){
-    super(level, x, y, z, texturesrc, new THREE.PlaneGeometry(scale, scale), null);
-
-    if(this.texture){
-      this.texture.wrapS = this.texture.wrapT = THREE.RepeatWrapping;
-      this.texture.repeat.set( 30, 30 );
+  constructor(level, texture, scale=1000){
+    if(texture){
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set( 30, 30 );
     }
+    let material = new THREE.MeshPhongMaterial({ map: texture });
+    let mesh = new THREE.Mesh(new THREE.PlaneGeometry(scale, scale), material);
+    mesh.rotation.x = -Math.PI/2;
+    mesh.material.shininess = 0;
+    mesh.castShadow = false;
 
-    this.mesh.rotation.x = -Math.PI/2;
-    this.mesh.material.shininess = 0;
-
-    if(this.level.physics_enabled)
-      this.initPhysics(scale);
+    super(level, 0,0,0, mesh);
+    if(this.level.physicsEnabled)
+      this.initPhysics();
   }
 
-  initPhysics(scale){
-    // console.log(scale);
-    this.body = new CANNON.Body({
-        mass: 0 // mass == 0 makes the body static
-    });
-    let groundShape = new CANNON.Plane();
+  initPhysics(){
+    this.body = new Body({ mass: 0 });
+    let groundShape = new Plane();
     this.body.addShape(groundShape);
-    this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+    this.body.quaternion.setFromAxisAngle(new Vec3(1,0,0),-Math.PI/2);
     this.body.position.set(0, 0, 0);
     this.level.world.addBody(this.body);
-    this.level.animatedObjects.push(this);
   }
 
-  animate(){
-    // this.mesh.rotation.x = this.xrot+=0.01;
-  }
 }

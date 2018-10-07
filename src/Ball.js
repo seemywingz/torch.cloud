@@ -1,16 +1,21 @@
 'use-strict';
 
-import * as THREE from 'three';
-import * as CANNON from 'cannon';
+import {
+  Mesh,
+  SphereGeometry,
+  MeshPhongMaterial
+} from 'three';
+import {Sphere} from 'cannon';
 import SceneObject from './SceneObject';
-import levelLoader from './LevelLoader';
 
 export default class Ball extends SceneObject {
 
-  constructor(level, x, y, z, texturesrc, scale=1, mass=1){
-    super(level, x, y, z, texturesrc, new THREE.SphereGeometry( scale, 32, 32 ), null);
-    if(this.level.physics_enabled) this.initPhysics(scale, mass, new CANNON.Sphere(scale) );
-    this.level.animatedObjects.push(this);
+  constructor(level, x, y, z, texture, scale=1, mass=1){
+    let material = new MeshPhongMaterial({ map: texture });
+    let mesh = new Mesh(new SphereGeometry( scale, 32, 32 ), material);
+    super(level, x, y, z, mesh, scale, mass);
+    if(this.level.physicsEnabled)
+      this.initPhysics(this.scale, this.mass, new Sphere(scale) );
   }
 
 }

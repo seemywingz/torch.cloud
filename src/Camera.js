@@ -1,157 +1,171 @@
 'use-strict';
 
-import * as THREE from 'three';
-import * as CANNON from 'cannon';
-import {loadControls} from './THREE_Controls';
+import {
+  Euler,
+  Vector3,
+  Object3D,
+  PerspectiveCamera 
+} from 'three';
 
-export default class Camera {
+export default class Camera{
 
-  constructor(level, x=0, y=3, z=10){
+  constructor(x=0, y=0, z=0, level){
+    this.level = level;
     this.x = x;
     this.y = y;
     this.z = z;
-    this.height = 2;
-    this.level = level;
-    this.lastTouch = 9999;
-    this.speed = 10;
-    this.running = false;
-    this.dy = 0;
-    this.near = 0.1;
-    this.far = 20000;
-    this.body = null;
-    this.jumpVelocity = 20;
-    this.jumping = false;
-    this.standing = false;
-    this.contactNormal = new CANNON.Vec3();
-    this.upAxis = new CANNON.Vec3(0,1,0);
-    this.camera = new THREE.PerspectiveCamera(
+    this.height = y;
+    this.speed = 400;
+    this.velocity = new Vector3();
+    this.direction = new Vector3();
+    this.moveForward = false;
+    this.moveBackward = false;
+    this.moveLeft = false;
+    this.moveRight = false;
+    this.near = 0.5;
+    this.far = 1000000;
+
+    this.lens = new PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
       this.near,
       this.far
     );
-
-    loadControls();
-    this.controls = new THREE.PointerLockControls(this.camera);
-    this.controls.lookSpeed = 0.02;
-    this.controls.movementSpeed = this.speed;
-    // this.controls.lon = -90;
-    this.controls.getObject().position.set(this.x, this.y, this.z);
-    this.level.scene.add(this.controls.getObject());
-
-    this.addEventListeners();
+    
     this.initPointerLock();
-    this.initPhysics(1, 10, new CANNON.Cylinder(1, 1, this.height, 32));
-
-    // this.raycaster = new THREE.Raycaster(); // create once and reuse
+    this.addEventListeners();
 
     // Easter Eggs
     this.konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
     this.konamiIndex = 0;
-    this.allowLook = true;
+    this.pTime = performance.now();
   }
 
-  animate() {
-    if(this.controls.enabled && this.standing){
+  update(){
+    if(this.controls.enabled){
+      let time = performance.now();
+      let delta = ( time - this.pTime ) / 1000;
+      
+      this.velocity.x -= this.velocity.x * 10 * delta;
+      this.velocity.z -= this.velocity.z * 10 * delta;
+      // this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
-      let s = this.running ? this.speed * 2.5 : this.speed;
-
-      if (this.moveForward ){
-        this.move('forward', s);
+      if(this.moveUp){
+        this.controls.position.y += 0.2;
       }
-
-      if (this.moveBackward){
-        this.move('backward', s);
+      if(this.moveDown){
+        this.controls.position.y -= 0.2;
       }
-
-      if (this.moveLeft){
-        this.move('left', s*0.5);
-      }
-
-      if (this.moveRight ){
-        this.move('right', s*0.5);
-      }
-
-      if (this.jumping ){
-        this.standing = false;
-        this.body.velocity.set(this.body.velocity.x, this.jumpVelocity, this.body.velocity.z);
-      }
-
+      
+      this.direction.z = Number( this.moveForward ) - Number( this.moveBackward );
+			this.direction.x = Number( this.moveLeft ) - Number( this.moveRight );
+      this.direction.normalize(); // this ensures consistent movements in all direction
+      
+			if ( this.moveForward || this.moveBackward ) this.velocity.z -= this.direction.z * this.speed * delta;
+			if ( this.moveLeft || this.moveRight ) this.velocity.x -= this.direction.x * (this.speed * 0.5) * delta;
+      
+      this.controls.translateX( this.velocity.x * delta );
+			// this.controls.translateY( this.velocity.y * delta );
+			this.controls.translateZ( this.velocity.z * delta );
+      
+      this.pTime = time;
     }
-    // console.log(this.body.position);
-    this.controls.getObject().position.copy(this.body.position);
-    this.controls.getObject().position.y += this.height;
   }
 
-  move(direction, speed){
-    var localForward;
-    switch (direction) {
-      case 'forward':
-        direction = new THREE.Vector3(0,0,-1);
-        break;
-      case 'backward':
-        direction = new THREE.Vector3(0,0,1);
-        break;
-      case 'left':
-        direction = new THREE.Vector3(-1,0,0);
-        break;
-      case 'right':
-        direction = new THREE.Vector3(1,0,0);
-        break;
-      default:
+  pointerLockControls(){
+	  this.lens.rotation.set( 0, 0, 0 );
 
+	  let pitchObject = new Object3D();
+	  pitchObject.add( this.lens );
+  
+	  let yawObject = new Object3D();
+	  yawObject.position.x = this.x;
+	  yawObject.position.y = this.height;
+	  yawObject.position.z = this.z;
+	  yawObject.add( pitchObject );
+    yawObject.enabled = false;
+  
+	  let PI_2 = Math.PI / 2;
+  
+	  let onMouseMove = function ( event ) {
+      // console.log("Mouse Moving");
+      if(!yawObject.enabled) return;
+	  	let movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+	  	let movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+  
+	  	yawObject.rotation.y -= movementX * 0.002;
+	  	pitchObject.rotation.x -= movementY * 0.002;
+  
+	  	pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
     }
-    let newDirection = new THREE.Vector3();
-    this.controls.getDirection( newDirection , direction);
-    this.body.velocity.set(newDirection.x * speed, this.body.velocity.y, newDirection.z * speed);
+    document.addEventListener( 'mousemove', onMouseMove, false );
+    this.level.scene.add(yawObject);
+    return yawObject;
   }
 
-  clamp(num, min, max) {
-    return num <= min ? min : num >= max ? max : num;
+  initPointerLock() {
+    this.controls = this.pointerLockControls();
+    this.pointerLockElement = document.body;
+    let havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+    if(havePointerLock){
+      this.pointerLockElement.requestPointerLock = this.pointerLockElement.requestPointerLock || this.pointerLockElement.mozRequestPointerLock || this.pointerLockElement.webkitRequestPointerLock;
+      // this.pointerLockElement.requestPointerLock();
+    }else{
+      alert('Your Browser Does not Support Pointer Locking!');
+    }
   }
 
-  initPhysics(scale, mass, shape){
-    this.body = new CANNON.Body({
-      mass: mass
-    });
-    this.body.addShape(shape);
-    this.body.position.set(this.x,this.y,this.z);
-    this.body.angularDamping = 1;
-    // this.body.linearDamping = 0.1;
-    // this.body.fixedRotation = true;
-    this.body.allowSleep = false;
-    this.body.addEventListener("collide",function(e){
-      let contact = e.contact;
-      // contact.bi and contact.bj are the colliding bodies, and contact.ni is the collision normal.
-      // We do not yet know which one is which! Let's check.
-      if(contact.bi.id == this.body.id)  // bi is the player body, flip the contact normal
-          contact.ni.negate(this.contactNormal);
-      else
-          this.contactNormal.copy(contact.ni); // bi is something else. Keep the normal as it is
-      // If contactNormal.dot(upAxis) is between 0 and 1, we know that the contact normal is somewhat in the up direction.
-      if(this.contactNormal.dot(this.upAxis) > 0.5){ // Use a "good" threshold value between 0 and 1 here!
-        this.jumping = false;
-        this.standing = true;
+  pointerlockchange() {
+      if (document.pointerLockElement === this.pointerLockElement || document.mozPointerLockElement === this.pointerLockElement || document.webkitPointerLockElement === this.pointerLockElement) {
+        this.controls.enabled = true;
+        console.log('Pointer Locked');
+        // document.getElementById('menu').style.display = 'none';
+      } else {
+        this.controls.enabled = false;
+        console.log('Pointer Released');
+        // document.getElementById('menu').style.display = 'block';
       }
-    }.bind(this));
-
-    this.level.world.addBody(this.body);
   }
 
-  getDirection(angle){
-    let matrix = new THREE.Matrix4();
-    matrix.extractRotation( this.camera.matrix );
-    return angle.applyMatrix4(matrix);
+  releasePointerLock(){
+    document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
+    document.exitPointerLock();
   }
 
-  click(event){
+  addEventListeners(){
+    window.addEventListener( 'keyup', this.keyUp.bind(this), false);
+    window.addEventListener( 'keydown', this.keyDown.bind(this), false);
+    window.addEventListener( 'click', this.click.bind(this), false);
+    document.addEventListener('pointerlockchange', this.pointerlockchange.bind(this), false);
+    document.addEventListener('mozpointerlockchange', this.pointerlockchange.bind(this), false);
+    document.addEventListener('webkitpointerlockchange', this.pointerlockchange.bind(this), false);
+  }
+
+  removeEventListeners(){
+    window.removeEventListener( 'keyup', this.keyUp, false);
+    window.removeEventListener( 'keydown', this.keyDown, false);
+    window.removeEventListener( 'click', this.click, false);
+    document.removeEventListener('pointerlockchange', this.pointerlockchange.bind(this), false);
+    document.removeEventListener('mozpointerlockchange', this.pointerlockchange.bind(this), false);
+    document.removeEventListener('webkitpointerlockchange', this.pointerlockchange.bind(this), false);
+  }
+
+  click(){
     if(!this.controls.enabled && this.pointerLockElement){
       this.pointerLockElement.requestPointerLock();
       this.controls.enabled = true;
     }else{
-      // console.log(this);
       this.level.click();
     }
+  }
+
+  getDirection () {
+    let v = new Vector3();
+    let direction = new Vector3( 0, 0, -1 );
+    let rotation = new Euler( 0, 0, 0, "YXZ" );
+    rotation.set( this.controls.children[0].rotation.x, this.controls.rotation.y, 0 );
+		v.copy( direction ).applyEuler( rotation );
+		return v;
   }
 
   keyUp(event){
@@ -174,25 +188,17 @@ export default class Camera {
         this.moveRight = false;
         break;
       case 32: // space
-        break;
-      case 80:/* p */
-        this.printPosition();
-        break;
-      case 70:/* f */
-        this.level.extra();
-        break;
-      case 71:/* g */
-        this.level.next();
+        this.moveDown = false;
+        this.moveUp = false;
         break;
       case 27:/* escape */
-        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
-        document.exitPointerLock();
+        this.releasePointerLock();
         break;
     }
   }
 
   keyDown(event){
-    this.running = event.shiftKey;
+    this.shiftDown = event.shiftKey;
     switch(event.keyCode){
       case 38: // up
       case 87: // w
@@ -211,36 +217,13 @@ export default class Camera {
         this.moveRight = true;
         break;
       case 32: // space
-        // if(!event.shiftKey){
-        //   this.dy = this.speed;
-        // }else{
-        //   this.dy = -this.speed;
-        // }
-        if ( !this.jumping && this.standing ){
-          this.jumping = true;
+        if (this.shiftDown) {
+          this.moveDown = true;
+        }else{
+          this.moveUp = true;
         }
         break;
     }
-  }
-
-  resize(){
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-  }
-
-  printPosition(){
-    let pos = this.controls.getObject().position;
-    let rot = this.controls.getObject().rotation;
-    console.log('\nCamera:',
-      '\n Position:\n',
-      ' X: ' + pos.x + '\n',
-      ' Y: ' + pos.y + '\n',
-      ' Z: ' + pos.z + '\n',
-      '\n Rotation:\n',
-      ' X: ' + rot.x + '\n',
-      ' Y: ' + rot.y + '\n',
-      ' Z: ' + rot.z + '\n'
-    );
   }
 
   handleKonamiCode(keyCode){
@@ -248,58 +231,12 @@ export default class Camera {
       this.konamiIndex += 1;
       if(this.konamiIndex === this.konamiCode.length){
         this.konamiIndex = 0;
-        alert('Konami Code of HONOR!');
-        this.level.next();
-        // levelLoader.currentLevel.extra();
+        // alert('Konami Code of HONOR!');
+        this.level.extra();
       }
     }else{
       this.konamiIndex = 0;
     }
   }
 
-  addEventListeners(){
-    window.addEventListener( 'keyup', this.keyUp.bind(this), false);
-    window.addEventListener( 'keydown', this.keyDown.bind(this), false);
-    window.addEventListener( 'click', this.click.bind(this), false);
-  }
-
-  removeEventListeners(){
-    window.removeEventListener( 'keyup', this.keyUp, false);
-    window.removeEventListener( 'keydown', this.keyDown, false);
-    window.removeEventListener( 'click', this.click, false);
-    document.removeEventListener('pointerlockchange', this.pointerlockchange.bind(this), false);
-    document.removeEventListener('mozpointerlockchange', this.pointerlockchange.bind(this), false);
-    document.removeEventListener('webkitpointerlockchange', this.pointerlockchange.bind(this), false);
-  }
-
-  initPointerLock() {
-    this.pointerLockElement = document.body;
-    // Hook pointer lock state change events
-    document.addEventListener('pointerlockchange', this.pointerlockchange.bind(this), false);
-    document.addEventListener('mozpointerlockchange', this.pointerlockchange.bind(this), false);
-    document.addEventListener('webkitpointerlockchange', this.pointerlockchange.bind(this), false);
-
-    let havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
-    if(havePointerLock){
-      this.pointerLockElement.requestPointerLock = this.pointerLockElement.requestPointerLock || this.pointerLockElement.mozRequestPointerLock || this.pointerLockElement.webkitRequestPointerLock;
-    }else{
-      alert('Your Browser Does not Support Pointer Locking!');
-    }
-
-    // Ask the browser to release the pointer
-    // document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock || document.webkitExitPointerLock;
-    // document.exitPointerLock();
-  }
-
-  pointerlockchange() {
-      if (document.pointerLockElement === this.pointerLockElement || document.mozPointerLockElement === this.pointerLockElement || document.webkitPointerLockElement === this.pointerLockElement) {
-        this.controls.enabled = true;
-        console.log('controls enabled');
-        // document.getElementById('menu').style.display = 'none';
-      } else {
-        this.controls.enabled = false;
-        console.log('controls disabled');
-        // document.getElementById('menu').style.display = 'block';
-      }
-  }
-}// Camera
+}

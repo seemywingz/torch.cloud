@@ -1,21 +1,22 @@
 'use-strict';
 
-import * as CANNON from 'cannon';
 import * as THREE from 'three';
+import 'three-examples/loaders/GLTFLoader';
 import Level1 from './levels/Level1';
 import { randNum, loadingMsgs, fade } from './Utils';
+THREE.Cache.enabled = true;
 
-export let
-  manager = new THREE.LoadingManager(),
-  jsonLoader = new THREE.JSONLoader(manager),
-  objectLoader = new THREE.ObjectLoader(manager),
-  textureLoader = new THREE.TextureLoader(manager);
 
+export let 
+  manager,
+  glTFLoader,
+  textureLoader,
+  audioLoader;
 
 export default class LevelLoader {
   constructor() {
 
-    this.manageLoaders();
+    this.initManager();
     this.initRenderer();
 
     this.paused = false;
@@ -24,40 +25,44 @@ export default class LevelLoader {
     window.addEventListener( 'resize', this.onWindowResize.bind(this), false );
     window.addEventListener( 'blur', this.pause.bind(this));
     window.addEventListener( 'focus', this.unPause.bind(this));
-
     window.focus();
-
 
     this.currentLevel = new Level1(this);
     // this.currentLevel.load();
   }
 
-  manageLoaders(){
-    console.log("Loading Loaders");
-    manager.onProgress = function (/*item, loaded*/) {
+  initManager(){
+    console.log("Loading...");
+    manager = new THREE.LoadingManager();
+    manager.onProgress = (/*item, loaded*/) => {
       if(!this.loading){
         this.loading = true;
         this.loadingAnimation();
-        console.log("Loading...");
       }
-    }.bind(this);
-
-    manager.onLoad = function () {// Completion
+    };
+    
+    manager.onLoad = () => {// Completion
+      console.log("...Loaded");
       this.loading = false;
       document.body.appendChild( this.renderer.domElement );
       fade( document.getElementById('overlay'));
-    }.bind(this);
+    };
 
     manager.onError = function () {
       console.log('there has been an error');
     };
+
+    glTFLoader = new THREE.GLTFLoader(manager);
+    textureLoader = new THREE.TextureLoader(manager);
+    audioLoader = new THREE.AudioLoader();
   }
 
   loadingAnimation(){
     if(this.loading){
+      console.log('loading animation');
       var num = ~~randNum(0, loadingMsgs.length - 1);
       document.getElementById('overlay').innerHTML = loadingMsgs[num];
-      setTimeout(this.loadingAnimation, 1000);
+      setTimeout(this.loadingAnimation, 100);
     }
   }
 
@@ -81,18 +86,21 @@ export default class LevelLoader {
     this.renderer.setSize( window.innerWidth, window.innerHeight );
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMapSoft = true;
-    this.renderer.shadowCameraNear = 0.1;
+    this.renderer.shadowCameraNear = 0.01;
     this.renderer.shadowCameraFar = 1000;
     this.renderer.shadowCameraFov = 45;
     this.renderer.shadowMapBias = 0.0001;
     this.renderer.shadowMapDarkness = 0.02;
     this.renderer.shadowMapWidth = 1024;
     this.renderer.shadowMapHeight = 1024;
+    this.renderer.gammaOutput = true;
+    this.renderer.gammaInput = true;
   }
 
   onWindowResize() {
-    this.currentLevel.camera.resize();
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.currentLevel.camera.lens.aspect = window.innerWidth / window.innerHeight;
+		this.currentLevel.camera.lens.updateProjectionMatrix();
+		this.renderer.setSize( window.innerWidth, window.innerHeight );
   }
 
   pause(){
@@ -102,13 +110,12 @@ export default class LevelLoader {
 
   unPause(){
     console.log("UNPAUSING!!");
-    this.currentLevel.lastTime = new Date().getTime();
     this.paused = false;
+    this.currentLevel.unPause()
   }
 
   changeLevel(levelNumber){
-
     this.currentLevel = this.levels[levelNumber];
-
   }
+
 }
