@@ -1,9 +1,9 @@
 'use-strict';
 
-import Sky from '../node_modules/3base/src/Sky';
-import Scene from '../node_modules/3base/src/Scene';
-import Ground from '../node_modules/3base/src/Ground';
-import GLTFModel from '../node_modules/3base/src/GLTFModel';
+import Sky from '3base/Sky';
+import Scene from '3base/Scene';
+import Ground from '3base/Ground';
+import GLTFModel from '3base/GLTFModel';
 
 export default class Scene1 extends Scene {
 

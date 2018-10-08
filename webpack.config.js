@@ -23,7 +23,7 @@ module.exports = {
 
   resolve: {
     alias: {
-      '3base': path.join(__dirname, '/node_modules/3base/src'),
+      '3base': path.join(__dirname, '/node_modules/3base/lib'),
     },
     extensions: ['*', '.js', '.jsx']
   },
