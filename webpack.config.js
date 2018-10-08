@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 console.log(path.join( __dirname + "/srv"));
 
 module.exports = {
@@ -18,17 +17,13 @@ module.exports = {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: ['babel-loader']
-      },
-      {
-        test: /three\/examples\/js/,
-        use: 'imports-loader?THREE=three'
       }
     ]
   },
 
   resolve: {
     alias: {
-      'three-examples': path.join(__dirname, './node_modules/three/examples/js')
+      '3base': path.join(__dirname, '/node_modules/3base/src'),
     },
     extensions: ['*', '.js', '.jsx']
   },

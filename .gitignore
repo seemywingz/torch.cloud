@@ -1,6 +1,10 @@
-node_modules
-.DS_Store
+# Files
 *.log
+*.tgz
+.DS_Store
 srv/bundle.js
+
+# Directories
 log/
-dist/
+lib/
+node_modules/
