@@ -1,11 +1,11 @@
 'use-strict';
 
 import Sky from '../node_modules/3base/src/Sky';
-import Level from '../node_modules/3base/src/Level';
+import Scene from '../node_modules/3base/src/Scene';
 import Ground from '../node_modules/3base/src/Ground';
 import GLTFModel from '../node_modules/3base/src/GLTFModel';
 
-export default class Level1 extends Level {
+export default class Scene1 extends Scene {
 
   constructor(loader) {
     super(loader);
