@@ -33,7 +33,7 @@
     "webpack-dev-server": "^3.1.4"
   },
   "dependencies": {
-    "3base": "^0.1.6"
+    "3base": "^0.1.12"
   },
   "postinstall": "install-app-deps"
 }

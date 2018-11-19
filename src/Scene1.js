@@ -1,39 +1,70 @@
 'use-strict';
 
-import Sky from '3base/Sky';
-import Scene from '3base/Scene';
-import Ground from '3base/Ground';
-import GLTFModel from '3base/GLTFModel';
+import * as tb from '3base';
+export default class Scene1 extends tb.Scene {
 
-export default class Scene1 extends Scene {
-
-  constructor(loader) {
-    super(loader);
+  constructor(manager) {
+    super(manager);
+    this.enablePhysics();
+    this.camera.setPosition(0,4,15)
+    this.camera.enablePointerLockControls();
+    this.load(); 
   }
   
   createScene(){
-    new Sky(this, this.loadTexture('assets/images/sky.jpg')).addToScene();
-    new Ground(this, this.loadTexture( 'assets/images/ground.jpg')).addToScene();
+    this.cannonBallTexture = this.manager.loadTexture( 'assets/images/ball.jpg');
+    new tb.Sky(this, this.manager.loadTexture('assets/images/sky.jpg')).addToScene();
+    new tb.Ground(this, this.manager.loadTexture( 'assets/images/ground.jpg')).addToScene();
     
-    this.ankh = new GLTFModel(this, 0, 0.018, -20, 'assets/models/ankh', .25, 0, true)
-    .then( (ankh) => {
-      ankh.mesh.rotation.y = Math.PI / 2;
-      ankh.addPositionalAudio('assets/audio/rickRoll.ogg', 5);
-    });
+    let ballTexture = this.manager.loadTexture( 'assets/images/beachBall.jpg');
+    let boxTexture = this.manager.loadTexture( 'assets/images/box/0.jpg');
 
-    // this.wind = this.getAudio('./assets/audio/wind.wav', 0.3).play();
-    // this.scene.fog = new THREE.FogExp2( 0xe5edf9, 0.025 );
+    // for (let w = 0; w < 5; w++) {
+    //   for (let h = 0; h < 10; h++) {
+    //     for (let d = 0; d < 5; d++) {
+    //       let box = new tb.Box(this,w,h,d, boxTexture, 1, 0.05).addToScene();
+    //     }
+    //   }
+    // }
+
+    for (let index = 0; index < 25; index++) {
+      let ball = new tb.Ball(this, tb.Utils.randNum(-10,5), tb.Utils.randNum(0.5, 200), tb.Utils.randNum(-10,5), ballTexture, 1, 0.05);
+      ball.mesh.shinyness = 100;
+      ball.body.setFriction(10);
+      ball.body.setRestitution(0.5);
+      ball.body.setDamping(0.05, 0.05);
+      ball.addToScene();
+    }
+    
+    new tb.GLTFModel(this, -5, 0, -10, 'assets/models/deadpool', 3, 0, true)
+    .then(deadpool=>{
+      deadpool.playAnimation(0);
+    })
+
+    new tb.GLTFModel(this, -10, 0, -10, 'assets/models/radio', 0.009, 0, true)
+    .then(radio=>{
+      radio.initPhysics(1, new tb.AMMO.btBoxShape(new tb.AMMO.btVector3(1,0.5,0.45)));
+      radio.setRotation(0,1,0,-1);
+      // radio.addPositionalAudio("./assets/audio/theme.ogg", 10);
+    })
+  }
+
+  createLights(){
+    let dl = new tb.DirectionalLight(this, 1, 200, 0);
+    dl.addShadow(-30,30,30,-30);
+    dl.addToScene()
+
+    let skyColor = 0xe5efff;
+    let groundColor = 0xecffd1;
+    new tb.HemisphereLight(this, skyColor, groundColor, 0.02).addToScene();
   }
 
   click(){
-    // let direction = this.camera.getDirection();
-    // let pos = this.camera.controls.position;
-
-    // let spd = 50;
-    // let ball = new Ball(this, pos.x,pos.y,pos.z, this.cannonBallTexture, 0.51, 100);
-    // ball.body.angularVelocity.set(0, 0, 0);
-    // ball.body.velocity.set(direction.x * spd, direction.y * spd, direction.z * spd);
-    // ball.body.addEventListener("sleep",(event)=>{ball.die();});
-    // ball.addToScene();
+    let spd = 50;
+    let pos = this.camera.controls.position;
+    let direction = this.camera.getDirection();
+    let ball = new tb.Ball(this, pos.x,pos.y,pos.z, this.cannonBallTexture, 0.5, 100);
+    ball.body.setLinearVelocity(new tb.AMMO.btVector3(direction.x * spd, direction.y * spd, direction.z * spd));
+    ball.addToScene();
   }
 }
