@@ -45,7 +45,7 @@ export default class Scene1 extends tb.Scene {
     .then(radio=>{
       radio.initPhysics(1, new tb.AMMO.btBoxShape(new tb.AMMO.btVector3(1,0.5,0.45)));
       radio.setRotation(0,1,0,-1);
-      // radio.addPositionalAudio("./assets/audio/theme.ogg", 10);
+      radio.addPositionalAudio("./assets/audio/theme.ogg", 10);
     })
   }
 
