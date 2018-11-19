@@ -2,12 +2,12 @@
 # yarn lockfile v1
 
 
-"3base@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/3base/-/3base-0.1.12.tgz#6f7512b7c00fad9518267a68847224832d7d60a1"
-  integrity sha512-VhENxC7Ida0/7UOXhrYPNg3IlJz2nJgMDfNvhORBdV7qJKvECPABbXi+9/vx0DV//1daF8bhxQQOs7VFKBDVGg==
+"3base@^0.1.19":
+  version "0.1.19"
+  resolved "https://registry.yarnpkg.com/3base/-/3base-0.1.19.tgz#a7871b92c53d29b24a15567126662156779d2d62"
+  integrity sha512-CNEjLzjc3ppfrPcCINseWw/RgySzhQn/k1MeZIUhCZoBD4iC0RJNnxUnBYNeXDI//bCe3mWI2tREEQdlOUYC2A==
   dependencies:
-    cannon "^0.6.2"
+    ammo.js "^0.0.10"
     three "^0.93.0"
     three-gltf-loader "^1.97.0"
 
@@ -195,6 +195,11 @@ ajv@^6.1.0:
     fast-json-stable-stringify "^2.0.0"
     json-schema-traverse "^0.3.0"
     uri-js "^4.2.1"
+
+ammo.js@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/ammo.js/-/ammo.js-0.0.10.tgz#afd16e7186dd3cf784374464f3a4e58f37776950"
+  integrity sha1-r9FucYbdPPeEN0Rk86Tljzd3aVA=
 
 ansi-html@0.0.7:
   version "0.0.7"
@@ -1100,11 +1105,6 @@ camelcase@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-4.1.0.tgz#d545635be1e33c542649c69173e5de6acfae34dd"
   integrity sha1-1UVjW+HjPFQmScaRc+Xeas+uNN0=
-
-cannon@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/cannon/-/cannon-0.6.2.tgz#1e7bc72dd5841982f3c104c2bc578bfa4fb1c572"
-  integrity sha1-HnvHLdWEGYLzwQTCvFeL+k+xxXI=
 
 chalk@^1.1.3:
   version "1.1.3"
@@ -4575,9 +4575,9 @@ tar@^4:
     yallist "^3.0.2"
 
 three-gltf-loader@^1.97.0:
-  version "1.97.0"
-  resolved "https://registry.yarnpkg.com/three-gltf-loader/-/three-gltf-loader-1.97.0.tgz#5bfb17b5e5817276b65855a86286f98c51efb415"
-  integrity sha512-TVjBeuOQSlmZOXXFhrQplxuNQQjmk2HAY+IfMGh0I2uqy0bR/dfrU/ioNeigJ4IyZre62eeW7eUhSvqU6K7kIg==
+  version "1.98.0"
+  resolved "https://registry.yarnpkg.com/three-gltf-loader/-/three-gltf-loader-1.98.0.tgz#ed575a910ca5864bf44a64b84f8ec08d741e9399"
+  integrity sha512-EDkIHescmJ8Zk0P1p+auFBp0nYXyyNx5rGcqEpvcKRoT7upkw/i645bD0WjOV8/StYFYpRXyzetfQBvdbBjdcg==
 
 three@^0.93.0:
   version "0.93.0"
