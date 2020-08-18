@@ -1,7 +1,8 @@
 'use-strict';
 
 import * as tb from '3base';
-import Scene1 from './Scene1';
+import Boxes from './Boxes';
+import Scene2 from './Scene2';
 
 let manager = new tb.Manager({canvas: myCanvas, antialias: true});
-manager.loadScene(Scene1);
+manager.loadScene(Boxes);
