@@ -1,0 +1,8 @@
+
+# Directories
+# node_modules/
+scripts/
+
+# Files
+Dockerfile
+README.md
